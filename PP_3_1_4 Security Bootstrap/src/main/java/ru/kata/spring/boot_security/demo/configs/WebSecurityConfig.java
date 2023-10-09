@@ -39,7 +39,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/user/**").hasAnyRole("ADMIN", "USER")
                 .antMatchers("/").permitAll()
-                .and()//разделитель
+                .and()
                 .formLogin()
                 .successHandler(successUserHandler)
                 .permitAll()
@@ -47,7 +47,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .permitAll();//разлогиниться можно всем
     }
-//Для входа под именем администратора: login/password = yana/yana
+
 
 
     @Bean
