@@ -14,165 +14,144 @@ import java.util.Objects;
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "name")
-    @NotEmpty
-    private String name; //это настоящее имя человека
+    @Column(name = "username")
+    private String firstName;
 
     @Column(name = "last_name")
-    @NotEmpty
     private String lastName;
 
+    @Column(name = "password")
+    private String password;
+
     @Column(name = "age")
-    @Min(value = 0)
-    @Max(value = 100)
     private Integer age;
 
     @Column(name = "email")
-    @Email(message = "Введите корректный email")
     private String email;
 
-    @Column(name = "username")
-    @NotNull
-    private String username; //это имя нужно для входа
-
-    @Column(name = "password")
-    @NotEmpty
-    private String password;
-
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinTable(
-            name = "users_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> roles = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "users_roles",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "role_id")})
+    private Collection<Role> roles;
 
     public User() {
     }
 
-    public User(String username, String password, List<Role> roles) {
-        this.username = username;
+    public User(Long id, String firstName, String lastName, Integer age, String password, String email) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.password = password;
-        this.roles = roles;
+        this.age = age;
+        this.email = email;
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(Long id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return this.email;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getFirstName() {
+        return this.firstName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public Integer getAge() {
-        return age;
+        return this.age;
     }
 
     public void setAge(Integer age) {
         this.age = age;
     }
 
-    public String getEmail() {
-        return email;
+    public String getLastName() {
+        return this.lastName;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
-    @Override
     public String getPassword() {
-        return password;
+        return this.password;
     }
 
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public List<Role> getRoles() {
-        return roles;
+    public String getEmail() {
+        return this.email;
     }
 
-    public void setRoles(List<Role> roles) {
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Collection<Role> getRoles() {
+        return this.roles;
+    }
+
+    public void setRoles(Collection<Role> roles) {
         this.roles = roles;
     }
 
-    public void addRoleToUser(Role role) {
-        this.roles.add(role);
+    public String toString() {
+        return "User{id=" + this.id +
+                ", firstName='" + this.firstName +
+                "', lastName='" + this.lastName +
+                "', password='" + this.password +
+                "', age='" + this.age +
+                "', email='" + this.email + "}";
+
     }
 
-    //методы интерфейса UserDetails
-
-    //возвращает коллекцию прав пользователя
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getRoles();
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    //аккаунт не просрочен
-    @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
-    //аккаунт не заблокирован
-    @Override
     public boolean isAccountNonLocked() {
         return true;
     }
 
-    //пароль рабочий
-    @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
-    //аккаунт рабочий
-    @Override
     public boolean isEnabled() {
         return true;
     }
 
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId()*31);
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.getRoles();
     }
-
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof User user)) return false;
-        return Objects.equals(getId(), user.getId()) && Objects.equals(getUsername(), user.getUsername());
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(password, user.password) && Objects.equals(age, user.age) && Objects.equals(email, user.email) && Objects.equals(roles, user.roles);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, firstName, lastName, password, age, email, roles);
     }
 }

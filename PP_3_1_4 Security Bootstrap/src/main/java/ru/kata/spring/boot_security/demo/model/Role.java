@@ -11,58 +11,68 @@ import java.util.Objects;
 public class Role implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
-
-    @Column(name = "role")
-    @NotEmpty
-    private String role;
+    @Column(name = "name")
+    private String name;
+    @Column(name = "value")
+    private String value;
 
     public Role() {
     }
 
-    public Role(String role) {
-        this.role = role;
+    public Role(Long id) {
+        this.id = id;
     }
 
-    @Override
-    public String toString() {
-String roleToPrint = role.replace("ROLE_", "");
-        return roleToPrint + " ";
+    public Role(Long id, String name, String value) {
+        this.id = id;
+        this.name = name;
+        this.value = value;
     }
 
+    public Long getId() {
+        return this.id;
+    }
 
     public void setId(Long id) {
         this.id = id;
     }
 
-    public Long getId() {
-        return id;
+    public String getName() {
+        return this.name;
     }
 
-    public String getRole() {
-        return role;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public String getValue() {
+        return this.value;
     }
 
-    @Override
+    public void setValue(String value) {
+        this.value = value;
+    }
+
     public String getAuthority() {
-        return getRole();
+        return this.getName();
+    }
+
+    public String toString() {
+        return this.name;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Role role)) return false;
-        return Objects.equals(getId(), role.getId());
+        if (o == null || getClass() != o.getClass()) return false;
+        Role role = (Role) o;
+        return Objects.equals(id, role.id) && Objects.equals(name, role.name) && Objects.equals(value, role.value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId()*31);
+        return Objects.hash(id, name, value);
     }
-
-
 }

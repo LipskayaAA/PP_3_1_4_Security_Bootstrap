@@ -2,84 +2,78 @@ package ru.kata.spring.boot_security.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public UserServiceImpl(PasswordEncoder passwordEncoder, UserRepository userRepository) {
-        this.passwordEncoder = passwordEncoder;
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
-
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
-
-    @Transactional
     @Override
-    public List<User> findAll() {
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    @Transactional
     @Override
-    public User findUserById(Long id) {
-        Optional<User> userFromDB = userRepository.findById(id);
-        if (userFromDB.isEmpty()) {
-            throw new UsernameNotFoundException(String.format("Пользователь с id = %d не найден", id));
-        }
-        return userFromDB.get();
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findById(id);
     }
 
-    @Transactional
     @Override
-    public User findByUsername(String username) {
-        User userDB = userRepository.findByUsername(username);
-        if (userDB == null) {
-            throw new UsernameNotFoundException(String.format("Пользователь с логином = %s не найден", username));
-        }
-        return userDB;
+    @Transactional
+    public void saveUser(User user) {
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
     }
 
-    @Transactional
     @Override
-    public boolean createUser(User user) {
-        if (userRepository.findByUsername(user.getUsername()) != null) {
-            return false;//юзер есть в БД
-        } else {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            userRepository.save(user);
+    @Transactional
+    public void updateUser(Long id, User user) {
+        Collection<Role> roles = user.getRoles();
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isPresent()) {
+            User editUser = optionalUser.get();
+            editUser.setId(user.getId());
+            editUser.setFirstName(user.getFirstName());
+            editUser.setLastName(user.getLastName());
+            editUser.setAge(user.getAge());
+            editUser.setEmail(user.getEmail());
+            if (roles == null) {
+            } else {
+                editUser.setRoles(user.getRoles());
+            }
+            if (!editUser.getPassword().equals(user.getPassword())) {
+                editUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            }
+            userRepository.save(editUser);
         }
-        return true;
     }
 
-    @Transactional
     @Override
-    public void update(User updateUser, Long id){
-        User user = userRepository.findById(id).get();
-        user.setPassword(passwordEncoder.encode(updateUser.getPassword()));
-            userRepository.save(user);
-    }
-
-
     @Transactional
-    @Override
-    public boolean deleteUserById(long id) {
-        if (userRepository.findById(id).isPresent()) {
-            userRepository.deleteById(id);
-            return true;
-        }
-        return false;
+    public void delete(Long id) {
+        userRepository.deleteById(id);
     }
 }
