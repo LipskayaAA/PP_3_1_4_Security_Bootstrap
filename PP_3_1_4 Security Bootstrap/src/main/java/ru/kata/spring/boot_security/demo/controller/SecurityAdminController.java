@@ -3,25 +3,23 @@ package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.List;
-
+import java.util.Collections;
 
 
 @Controller
 @RequestMapping({"/admin"})
 public class SecurityAdminController {
+
     private final UserService userService;
     private final RoleService roleService;
 
@@ -30,32 +28,51 @@ public class SecurityAdminController {
         this.userService = userService;
         this.roleService = roleService;
     }
-
-
-    @GetMapping
-    public String showAllUsers(Model model, Principal principal) {
-        model.addAttribute("user", this.userService.findByEmail(principal.getName()));
-        model.addAttribute("users", this.userService.getAllUsers());
-        model.addAttribute("roles", this.roleService.getListRoles());
-        model.addAttribute("newUser", new User());
-        return "admin";
+    @GetMapping(value = "/")
+    public String getAdminPage(@AuthenticationPrincipal User user, Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("user", user);
+        model.addAttribute("roles", roleService.getAllRoles());
+        return "admin/admin_page";
     }
 
-    @PutMapping({"/edit/{id}"})
-    public String updateUser(@ModelAttribute("user") User user, @PathVariable("id") Long id, Model model) {
-        this.userService.updateUser(id, user);
-        return "redirect:/admin";
+    @GetMapping("/add")
+    public String newUserPage(@AuthenticationPrincipal User user, Model model) {
+        model.addAttribute("user", user);
+        model.addAttribute("roles", roleService.getAllRoles());
+        return "admin/new_user";
+    }
+    @PostMapping("/new")
+    public String createUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult,
+                             @RequestParam(value = "roles") String[] selectResult) {
+        if (bindingResult.hasErrors()) {
+            return "admin/new_user";
+        } else {
+            for (String s : selectResult) {
+                user.setRoles(Collections.singleton(roleService.getRole(s)));
+            }
+            userService.saveUser(user);
+            return "redirect:/admin/";
+        }
     }
 
-    @PostMapping
-    public String create(@ModelAttribute("user") User user) {
-        this.userService.saveUser(user);
-        return "redirect:/admin";
+    @DeleteMapping("/{id}")
+    public String deleteUser(@PathVariable("id") long id) {
+        userService.deleteUser(id);
+        return "redirect:/admin/";
     }
 
-    @DeleteMapping({"/{id}"})
-    public String delete(@PathVariable("id") Long id) {
-        this.userService.delete(id);
-        return "redirect:/admin";
+    @PatchMapping("/edit/{id}")
+    public String updateUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult,
+                             @RequestParam(value = "roles") String[] selectResult) {
+        if (bindingResult.hasErrors()) {
+            return "redirect:/admin/";
+        } else {
+            for (String s : selectResult) {
+                user.setRoles(Collections.singleton(roleService.getRole(s)));
+            }
+            userService.updateUser(user);
+            return "redirect:/admin/";
+        }
     }
 }

@@ -16,17 +16,14 @@ import java.security.Principal;
 @RequestMapping("/user")
 public class SecurityUserController {
 
-    private final UserService userService;
-
-    @Autowired
-    public SecurityUserController(UserService userService) {
-        this.userService = userService;
+    @GetMapping(value = "/login")
+    public String loginPage() {
+        return "user/login";
     }
 
-
-    @GetMapping()
-    public String showUserInfo(Model model, Principal principal) {
-        model.addAttribute("user", userService.findByEmail(principal.getName()));
-        return "user";
+    @GetMapping("/")
+    public String show(@AuthenticationPrincipal User user, ModelMap model) {
+        model.addAttribute("user", user);
+        return "user/user_page";
     }
 }
