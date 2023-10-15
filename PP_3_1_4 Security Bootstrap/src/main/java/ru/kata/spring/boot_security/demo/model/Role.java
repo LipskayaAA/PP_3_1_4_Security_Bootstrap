@@ -3,7 +3,6 @@ package ru.kata.spring.boot_security.demo.model;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
 import java.util.Objects;
 import java.util.Set;
 

@@ -22,6 +22,9 @@ public class SecurityAdminController {
     private final UserService userService;
     private final RoleService roleService;
 
+    private static final String REDIRECT = "redirect:/admin";
+
+
     @Autowired
     public SecurityAdminController(UserService userService, RoleService roleService) {
         this.userService = userService;
@@ -51,27 +54,27 @@ public class SecurityAdminController {
                 user.setRoles(Collections.singleton(roleService.getRole(s)));
             }
             userService.saveUser(user);
-            return "redirect:/admin/";
+            return REDIRECT;
         }
     }
 
     @DeleteMapping("/{id}")
     public String deleteUser(@PathVariable("id") long id) {
         userService.deleteUser(id);
-        return "redirect:/admin/";
+        return REDIRECT;
     }
 
     @PatchMapping("/edit/{id}")
     public String updateUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult,
                              @RequestParam(value = "roles") String[] selectResult) {
         if (bindingResult.hasErrors()) {
-            return "redirect:/admin/";
+            return REDIRECT;
         } else {
             for (String s : selectResult) {
                 user.setRoles(Collections.singleton(roleService.getRole(s)));
             }
             userService.updateUser(user);
-            return "redirect:/admin/";
+            return REDIRECT;
         }
     }
 }
